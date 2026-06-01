@@ -7,10 +7,14 @@ Claude Code skills built from real operational experience.
 **With npx (quickest):**
 
 ```bash
-npx @growgami/skills --all          # everything
-npx @growgami/skills --list         # list available skills
-npx @growgami/skills org-map        # specific skill(s)
+npx @growgami/skills --all                  # everything
+npx @growgami/skills --list                 # list available skills (and bundles)
+npx @growgami/skills org-map                # specific skill(s)
+npx @growgami/skills neobank-seo-skills     # a whole bundle (all 6 SEO skills)
 ```
+
+Installing a bundle name (e.g. `neobank-seo-skills`) installs every skill inside
+it, each under its own bare name.
 
 Installs into `~/.claude/skills/` (override with `CLAUDE_SKILLS_DIR`).
 

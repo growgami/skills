@@ -24,10 +24,27 @@ function printHelp(target) {
   );
 }
 
-// Install a set of bare names, resolving each against discovered skills.
+// Install one resolved skill, printing a "+ name" line on success.
+// Returns 0 on success, 1 on failure.
+function installOne(skill, target) {
+  try {
+    installSkill(skill.name, skill.srcPath, target);
+    process.stdout.write(`  ${green}+${reset} ${skill.name}\n`);
+    return 0;
+  } catch (err) {
+    process.stdout.write(
+      `  ${red}skip${reset} ${skill.name} (${err.message})\n`
+    );
+    return 1;
+  }
+}
+
+// Install a set of bare names, resolving each against discovered skills and
+// bundles. A bundle name installs all of its member skills.
 // Returns a non-zero exit code if any name is missing or collides.
-function installNames(names, skills, collisions, target) {
+function installNames(names, skills, bundles, collisions, target) {
   const byName = new Map(skills.map((s) => [s.name, s]));
+  const byBundle = new Map(bundles.map((b) => [b.name, b]));
   const collisionNames = new Set(collisions.map((c) => c.name));
   let status = 0;
 
@@ -40,20 +57,36 @@ function installNames(names, skills, collisions, target) {
       continue;
     }
     const skill = byName.get(name);
-    if (!skill) {
-      process.stdout.write(`  ${yellow}skip${reset} ${name} (not found)\n`);
-      status = 1;
+    const bundle = byBundle.get(name);
+    // Prefer an individual skill over a bundle if both somehow match.
+    if (skill) {
+      if (bundle) {
+        process.stdout.write(
+          `  ${yellow}note${reset} ${name} matches both a skill and a bundle; installing the skill\n`
+        );
+      }
+      status = installOne(skill, target) || status;
       continue;
     }
-    try {
-      installSkill(skill.name, skill.srcPath, target);
-      process.stdout.write(`  ${green}+${reset} ${name}\n`);
-    } catch (err) {
+    if (bundle) {
       process.stdout.write(
-        `  ${red}skip${reset} ${name} (${err.message})\n`
+        `  ${dim}bundle ${bundle.name} -> ${bundle.members.length} skills${reset}\n`
       );
-      status = 1;
+      for (const member of bundle.members) {
+        const memberSkill = byName.get(member);
+        if (!memberSkill) {
+          process.stdout.write(
+            `  ${yellow}skip${reset} ${member} (not found)\n`
+          );
+          status = 1;
+          continue;
+        }
+        status = installOne(memberSkill, target) || status;
+      }
+      continue;
     }
+    process.stdout.write(`  ${yellow}skip${reset} ${name} (not found)\n`);
+    status = 1;
   }
   return status;
 }
@@ -61,7 +94,7 @@ function installNames(names, skills, collisions, target) {
 async function main() {
   const args = process.argv.slice(2);
   const target = targetDir();
-  const { skills, collisions } = discover();
+  const { skills, bundles, collisions } = discover();
 
   if (args[0] === '--help' || args[0] === '-h') {
     printHelp(target);
@@ -74,7 +107,7 @@ async function main() {
         `  ${red}skip${reset} ${c.name} (name collision)\n`
       );
     }
-    printList(skills);
+    printList(skills, bundles);
     return 0;
   }
 
@@ -86,13 +119,13 @@ async function main() {
   } else if (args.length > 0) {
     names = args;
   } else if (process.stdin.isTTY) {
-    names = await interactivePick(skills);
+    names = await interactivePick(skills, bundles);
   } else {
     printHelp(target);
     return 0;
   }
 
-  const status = installNames(names, skills, collisions, target);
+  const status = installNames(names, skills, bundles, collisions, target);
   process.stdout.write('\n');
   return status;
 }

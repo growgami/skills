@@ -32,6 +32,44 @@ discover_skills() {
   done
 }
 
+# Discover bundles and emit "bundle<TAB>member1,member2,..." lines.
+# A bundle = a dir directly under skills/ with NO SKILL.md of its own that
+# contains a skills/ subdir holding one or more <name>/SKILL.md.
+discover_bundles() {
+  local d nested name members
+  for d in "$SKILLS_DIR"/*/; do
+    [ -d "$d" ] || continue
+    [ -f "$d/SKILL.md" ] && continue
+    [ -d "$d/skills" ] || continue
+    name="$(basename "$d")"
+    members=""
+    for nested in "$d"skills/*/; do
+      [ -d "$nested" ] || continue
+      [ -f "$nested/SKILL.md" ] || continue
+      if [ -n "$members" ]; then
+        members="$members,$(basename "$nested")"
+      else
+        members="$(basename "$nested")"
+      fi
+    done
+    [ -n "$members" ] || continue
+    printf '%s\t%s\n' "$name" "$members"
+  done
+}
+
+# Resolve a bundle name to its comma-separated member list.
+# Prints members on success; returns 1 if not a bundle.
+resolve_bundle() {
+  local want="$1" name members
+  while IFS=$'\t' read -r name members; do
+    if [ "$name" = "$want" ]; then
+      printf '%s' "$members"
+      return 0
+    fi
+  done < <(discover_bundles)
+  return 1
+}
+
 # Bare skill names, one per line, deduped is NOT applied here so callers can
 # detect collisions; for listing we surface collisions explicitly.
 list_skills() {
@@ -65,23 +103,63 @@ resolve_src() {
   printf '%s' "$matches" | head -n1
 }
 
-install_skill() {
+# Copy one resolved skill (name + source dir) into the target.
+copy_skill() {
+  local name="$1" src="$2"
+  rm -rf "${TARGET:?}/$name"
+  mkdir -p "$TARGET/$name"
+  cp -r "$src"/* "$TARGET/$name/"
+  echo -e "  ${green}+${reset} $name"
+}
+
+# Install a single skill by bare name. Returns 1 if not found, 2 on collision.
+install_one() {
   local name="$1" src rc
   set +e
   src="$(resolve_src "$name")"
   rc=$?
   set -e
   if [ "$rc" -eq 1 ]; then
-    echo -e "  ${yellow}skip${reset} $name (not found)"
     return 1
   elif [ "$rc" -eq 2 ]; then
     echo -e "  ${red}skip${reset} $name (name collision)"
     return 2
   fi
-  rm -rf "${TARGET:?}/$name"
-  mkdir -p "$TARGET/$name"
-  cp -r "$src"/* "$TARGET/$name/"
-  echo -e "  ${green}+${reset} $name"
+  copy_skill "$name" "$src"
+}
+
+# Install by name: an individual skill if it matches, else a bundle (all
+# members), else not found. Prefers an individual skill over a bundle.
+install_skill() {
+  local name="$1" members member status=0
+  # Detect skill vs bundle up front to handle the (guarded) collision case.
+  local is_skill=0 is_bundle=0
+  set +e
+  resolve_src "$name" >/dev/null 2>&1 && is_skill=1
+  members="$(resolve_bundle "$name")" && is_bundle=1
+  set -e
+
+  if [ "$is_skill" -eq 1 ]; then
+    if [ "$is_bundle" -eq 1 ]; then
+      echo -e "  ${yellow}note${reset} $name matches both a skill and a bundle; installing the skill"
+    fi
+    install_one "$name"
+    return $?
+  fi
+
+  if [ "$is_bundle" -eq 1 ]; then
+    local count
+    count="$(echo "$members" | tr ',' '\n' | grep -c . || true)"
+    echo -e "  ${dim}bundle $name -> $count skills${reset}"
+    IFS=',' read -ra _members <<< "$members"
+    for member in "${_members[@]}"; do
+      install_one "$member" || status=$?
+    done
+    return "$status"
+  fi
+
+  echo -e "  ${yellow}skip${reset} $name (not found)"
+  return 1
 }
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
@@ -98,6 +176,15 @@ fi
 
 if [ "${1:-}" = "--list" ]; then
   list_skills
+  bundles="$(discover_bundles)"
+  if [ -n "$bundles" ]; then
+    echo ""
+    echo "Bundles (install the whole set by name):"
+    while IFS=$'\t' read -r bname bmembers; do
+      [ -n "$bname" ] || continue
+      printf '  %s  (%s)\n' "$bname" "$(echo "$bmembers" | sed 's/,/, /g')"
+    done < <(printf '%s\n' "$bundles")
+  fi
   exit 0
 fi
 
@@ -129,6 +216,15 @@ echo ""
 for i in "${!skills[@]}"; do
   printf "  %2d) %s\n" $((i+1)) "${skills[$i]}"
 done
+picker_bundles="$(discover_bundles)"
+if [ -n "$picker_bundles" ]; then
+  echo ""
+  echo "  Bundles (install the whole set by name):"
+  while IFS=$'\t' read -r bname bmembers; do
+    [ -n "$bname" ] || continue
+    printf '    %s  (%s)\n' "$bname" "$(echo "$bmembers" | sed 's/,/, /g')"
+  done < <(printf '%s\n' "$picker_bundles")
+fi
 echo ""
 read -rp "  Enter numbers or names (comma-separated), or 'all': " choice
 

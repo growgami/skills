@@ -18,10 +18,13 @@ Works with Claude Code, Codex, Cursor, and any agent that supports the [Agent Sk
 ## Install
 
 ```bash
-# All skills
-npx @growgami/skills
+# The whole pack (all 6 skills)
+npx @growgami/skills neobank-seo-skills
 
-# Specific skills
+# Or list the 6 by name
+npx @growgami/skills seo-audit ai-seo programmatic-seo competitor-pages schema aso
+
+# Or just the ones you want
 npx @growgami/skills seo-audit ai-seo
 ```
 
