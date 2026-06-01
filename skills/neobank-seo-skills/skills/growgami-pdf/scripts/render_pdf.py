@@ -11,7 +11,9 @@ The PDF leads with a call-to-action banner at the very top of the document:
     about our agentic SEO done-for-you system
 
 Branding follows the Growgami brand-guidelines skill: a monochrome grayscale
-palette (#080808 ... #F9F9F9) and Geist Mono typography.
+palette (#080808 ... #F9F9F9) and Geist Mono typography. The document uses
+Growgami's dark identity — a near-black page, heavy Geist Mono titles, and
+white text throughout.
 
 Usage (zero-setup via uv — it installs the `markdown` dep automatically):
 
@@ -48,13 +50,17 @@ CTA_TEXT = (
 )
 
 # --- Growgami brand tokens (from the brand-guidelines skill) -----------------
-NEAR_BLACK = "#080808"
-DARK_SURFACE = "#141414"
-DARK_BORDER = "#292929"
-LIGHT_SUBTLE = "#D6D6D6"
-LIGHT_MUTED = "#E0E0E0"
+# Dark scale (near black)
+NEAR_BLACK = "#080808"   # primary background, darkest
+DARK_SURFACE = "#141414"  # dark surfaces (panels)
+ELEVATED = "#1F1F1F"      # elevated dark surfaces (table headers, code)
+DARK_BORDER = "#292929"   # borders on dark
+SUBTLE = "#333333"        # subtle dark elements
+# Light scale (white smoke)
+LIGHT_SUBTLE = "#D6D6D6"  # secondary / muted text on dark
+LIGHT_MUTED = "#E0E0E0"   # muted text
 LIGHT_SURFACE = "#F5F5F5"
-WHITE_SMOKE = "#F9F9F9"
+WHITE_SMOKE = "#F9F9F9"   # primary text on dark
 
 FONT_STACK = (
     "'Geist Mono', ui-monospace, 'Cascadia Code', 'SFMono-Regular', "
@@ -63,9 +69,10 @@ FONT_STACK = (
 
 
 def build_css() -> str:
-    """The full stylesheet. Monochrome, Geist Mono, print-tuned."""
+    """The full stylesheet. Growgami dark identity: near-black page, heavy
+    Geist Mono titles, white text, monochrome only."""
     return f"""
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap');
 
 @page {{
     size: A4;
@@ -74,11 +81,17 @@ def build_css() -> str:
 
 * {{ box-sizing: border-box; }}
 
+/* Near-black is set on the root so it propagates to the full page canvas
+   (every sheet, including the @page margins) in print. */
+html {{
+    background: {NEAR_BLACK};
+}}
+
 html, body {{
     margin: 0;
     padding: 0;
-    background: {WHITE_SMOKE};
-    color: {NEAR_BLACK};
+    background: {NEAR_BLACK};
+    color: {WHITE_SMOKE};
     font-family: {FONT_STACK};
     font-weight: 400;
     font-size: 10.5pt;
@@ -89,28 +102,30 @@ html, body {{
 
 /* --- Call-to-action banner: the first thing on the document --- */
 .cta-banner {{
-    background: {NEAR_BLACK};
+    background: {DARK_SURFACE};
     color: {WHITE_SMOKE};
+    border: 1px solid {DARK_BORDER};
     padding: 18px 22px;
-    border-radius: 6px;
-    margin-bottom: 26px;
+    border-radius: 8px;
+    margin-bottom: 28px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 18px;
     page-break-inside: avoid;
 }}
 .cta-banner .cta-mark {{
-    font-weight: 600;
-    font-size: 12pt;
-    letter-spacing: 0.18em;
+    font-weight: 700;
+    font-size: 13pt;
+    letter-spacing: 0.22em;
     white-space: nowrap;
-    border-right: 1px solid {DARK_BORDER};
-    padding-right: 16px;
+    color: {WHITE_SMOKE};
+    border-right: 1px solid {SUBTLE};
+    padding-right: 18px;
 }}
 .cta-banner .cta-copy {{
     font-size: 10pt;
     line-height: 1.5;
-    color: {LIGHT_MUTED};
+    color: {LIGHT_SUBTLE};
 }}
 .cta-banner .cta-copy a {{
     color: {WHITE_SMOKE};
@@ -121,80 +136,90 @@ html, body {{
 
 /* --- Cover / title block --- */
 .cover {{
-    border-bottom: 2px solid {NEAR_BLACK};
-    padding-bottom: 16px;
-    margin-bottom: 30px;
+    border-bottom: 1px solid {DARK_BORDER};
+    padding-bottom: 18px;
+    margin-bottom: 32px;
 }}
 .cover .eyebrow {{
     font-size: 8.5pt;
-    letter-spacing: 0.22em;
+    font-weight: 500;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: {DARK_BORDER};
-    margin-bottom: 8px;
+    color: {LIGHT_SUBTLE};
+    margin-bottom: 10px;
 }}
 .cover h1.cover-title {{
-    font-size: 22pt;
-    font-weight: 600;
-    line-height: 1.15;
-    margin: 0 0 10px 0;
+    font-size: 27pt;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px 0;
     border: none;
     padding: 0;
+    color: {WHITE_SMOKE};
 }}
 .cover .meta {{
     font-size: 9pt;
-    color: {DARK_BORDER};
+    color: {LIGHT_SUBTLE};
 }}
 .cover .meta span + span::before {{
-    content: "  •  ";
-    color: {LIGHT_SUBTLE};
+    content: "  /  ";
+    color: {SUBTLE};
 }}
 
 /* --- Body typography --- */
+.content {{ color: {WHITE_SMOKE}; }}
 .content h1, .content h2, .content h3, .content h4 {{
-    font-weight: 500;
-    line-height: 1.25;
-    margin: 1.5em 0 0.5em 0;
+    font-weight: 700;
+    line-height: 1.22;
+    margin: 1.6em 0 0.5em 0;
+    color: {WHITE_SMOKE};
     page-break-after: avoid;
 }}
-.content h1 {{ font-size: 17pt; border-bottom: 1px solid {LIGHT_MUTED}; padding-bottom: 6px; }}
-.content h2 {{ font-size: 14pt; border-bottom: 1px solid {LIGHT_MUTED}; padding-bottom: 4px; }}
-.content h3 {{ font-size: 12pt; }}
-.content h4 {{ font-size: 10.5pt; color: {DARK_BORDER}; }}
-.content p {{ margin: 0.6em 0; }}
-.content a {{ color: {NEAR_BLACK}; text-decoration: underline; text-underline-offset: 2px; }}
-.content ul, .content ol {{ margin: 0.5em 0; padding-left: 1.4em; }}
-.content li {{ margin: 0.25em 0; }}
-.content strong {{ font-weight: 600; }}
-.content hr {{ border: none; border-top: 1px solid {LIGHT_MUTED}; margin: 1.8em 0; }}
+.content h1 {{ font-size: 18pt; border-bottom: 1px solid {DARK_BORDER}; padding-bottom: 8px; letter-spacing: -0.01em; }}
+.content h2 {{ font-size: 14.5pt; border-bottom: 1px solid {DARK_BORDER}; padding-bottom: 5px; }}
+.content h3 {{ font-size: 12pt; font-weight: 600; }}
+.content h4 {{ font-size: 10.5pt; font-weight: 600; color: {LIGHT_MUTED}; }}
+.content p {{ margin: 0.6em 0; color: {WHITE_SMOKE}; }}
+.content a {{ color: {WHITE_SMOKE}; text-decoration: underline; text-underline-offset: 2px; }}
+.content ul, .content ol {{ margin: 0.5em 0; padding-left: 1.5em; }}
+.content li {{ margin: 0.28em 0; }}
+.content strong {{ font-weight: 700; color: {WHITE_SMOKE}; }}
+.content em {{ color: {LIGHT_MUTED}; }}
+.content hr {{ border: none; border-top: 1px solid {DARK_BORDER}; margin: 1.8em 0; }}
 
 .content blockquote {{
     margin: 1em 0;
-    padding: 10px 16px;
-    background: {LIGHT_SURFACE};
-    border-left: 3px solid {NEAR_BLACK};
-    color: {DARK_SURFACE};
+    padding: 12px 18px;
+    background: {DARK_SURFACE};
+    border: 1px solid {DARK_BORDER};
+    border-left: 3px solid {WHITE_SMOKE};
+    border-radius: 4px;
+    color: {LIGHT_SUBTLE};
 }}
-.content blockquote p {{ margin: 0.3em 0; }}
+.content blockquote p {{ margin: 0.3em 0; color: {LIGHT_SUBTLE}; }}
 
 .content code {{
     font-family: {FONT_STACK};
-    background: {LIGHT_SURFACE};
-    border: 1px solid {LIGHT_MUTED};
+    background: {ELEVATED};
+    border: 1px solid {DARK_BORDER};
     border-radius: 3px;
     padding: 0.5px 5px;
     font-size: 9.5pt;
+    color: {LIGHT_MUTED};
 }}
 .content pre {{
-    background: {NEAR_BLACK};
+    background: {DARK_SURFACE};
     color: {WHITE_SMOKE};
+    border: 1px solid {DARK_BORDER};
     padding: 14px 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow-x: auto;
     font-size: 9pt;
     line-height: 1.5;
     page-break-inside: avoid;
 }}
-.content pre code {{ background: none; border: none; color: inherit; padding: 0; }}
+.content pre code {{ background: none; border: none; color: {WHITE_SMOKE}; padding: 0; }}
 
 /* --- Tables (audit findings live here) --- */
 .content table {{
@@ -202,43 +227,48 @@ html, body {{
     width: 100%;
     margin: 1em 0;
     font-size: 9.5pt;
+    border: 1px solid {DARK_BORDER};
     page-break-inside: avoid;
 }}
 .content th {{
-    background: {NEAR_BLACK};
+    background: {ELEVATED};
     color: {WHITE_SMOKE};
-    font-weight: 500;
+    font-weight: 600;
     text-align: left;
-    padding: 8px 10px;
+    padding: 9px 11px;
+    border-bottom: 1px solid {SUBTLE};
 }}
 .content td {{
-    border-bottom: 1px solid {LIGHT_MUTED};
-    padding: 7px 10px;
+    border-bottom: 1px solid {DARK_BORDER};
+    padding: 8px 11px;
     vertical-align: top;
+    color: {WHITE_SMOKE};
 }}
-.content tr:nth-child(even) td {{ background: {LIGHT_SURFACE}; }}
+.content tr:nth-child(even) td {{ background: {DARK_SURFACE}; }}
 
 /* --- Closing CTA (reinforced in the document flow) --- */
 .cta-footer {{
-    margin-top: 36px;
-    padding: 20px 22px;
-    background: {NEAR_BLACK};
+    margin-top: 38px;
+    padding: 22px;
+    background: {DARK_SURFACE};
     color: {WHITE_SMOKE};
-    border-radius: 6px;
+    border: 1px solid {DARK_BORDER};
+    border-radius: 8px;
     text-align: center;
     page-break-inside: avoid;
 }}
-.cta-footer .headline {{ font-size: 11pt; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.04em; }}
-.cta-footer .sub {{ font-size: 9.5pt; color: {LIGHT_MUTED}; }}
+.cta-footer .headline {{ font-size: 12pt; font-weight: 700; margin-bottom: 7px; letter-spacing: 0.02em; color: {WHITE_SMOKE}; }}
+.cta-footer .sub {{ font-size: 9.5pt; color: {LIGHT_SUBTLE}; }}
 .cta-footer a {{ color: {WHITE_SMOKE}; font-weight: 600; }}
 
 .colophon {{
-    margin-top: 14px;
+    margin-top: 16px;
     text-align: center;
     font-size: 8pt;
-    letter-spacing: 0.16em;
+    font-weight: 500;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: {LIGHT_SUBTLE};
+    color: {SUBTLE};
 }}
 """
 
