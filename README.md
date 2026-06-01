@@ -4,28 +4,32 @@ Claude Code skills built from real operational experience.
 
 ## Install
 
-**One skill:**
+**With npx (quickest):**
 
 ```bash
-git clone https://github.com/growgami/growgami-skills-compendium.git
-cp -r growgami-skills-compendium/skills/org-map ~/.claude/skills/
+npx @growgami/skills --all          # everything
+npx @growgami/skills --list         # list available skills
+npx @growgami/skills org-map        # specific skill(s)
 ```
 
-**All skills:**
+Installs into `~/.claude/skills/` (override with `CLAUDE_SKILLS_DIR`).
+
+**Alternative — git clone + install script:**
 
 ```bash
-git clone https://github.com/growgami/growgami-skills-compendium.git
-cp -r growgami-skills-compendium/skills/* ~/.claude/skills/
-```
-
-**With the install script:**
-
-```bash
-git clone https://github.com/growgami/growgami-skills-compendium.git
-cd growgami-skills-compendium
+git clone https://github.com/growgami/skills.git
+cd skills
 ./install.sh              # interactive picker
 ./install.sh org-map      # specific skill
 ./install.sh --all        # everything
+```
+
+**Alternative — git clone + manual copy:**
+
+```bash
+git clone https://github.com/growgami/skills.git
+cp -r skills/skills/org-map ~/.claude/skills/   # one skill
+cp -r skills/skills/* ~/.claude/skills/         # all flat skills
 ```
 
 ## Skills
@@ -43,6 +47,7 @@ cd growgami-skills-compendium
 | [memory-management](skills/memory-management/) | Claude memory management |
 | [neobank-lifecycle-sequence-generator](skills/neobank-lifecycle-sequence-generator/) | Neobank lifecycle sequences |
 | [skill-creator](skills/skill-creator/) | Scaffold new Claude skills |
+| [neobank-seo-skills](skills/neobank-seo-skills/) | Bundle of 6 nested SEO skills for neobank/fintech: seo-audit, ai-seo, programmatic-seo, competitor-pages, schema, aso |
 
 ## Structure
 
@@ -51,6 +56,13 @@ skills/
   skill-name/
     SKILL.md        # skill definition (YAML frontmatter + prompt)
     references/     # optional supporting files
+  bundle-name/      # a bundle groups related skills
+    skills/
+      skill-name/
+        SKILL.md
+        references/
 ```
+
+Both flat skills and nested bundle skills install under their bare name (e.g. `seo-audit`). Tooling discovers SKILL.md at both depths.
 
 Compatible with vanilla Claude Code (`~/.claude/skills/`) and [skills.ws](https://skills.ws).

@@ -1,0 +1,27 @@
+{
+  "name": "@growgami/skills",
+  "version": "0.1.0",
+  "description": "Claude Code skills built from real operational experience, installable via npx.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "github:growgami/skills"
+  },
+  "bin": {
+    "growgami-skills": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  }
+}
