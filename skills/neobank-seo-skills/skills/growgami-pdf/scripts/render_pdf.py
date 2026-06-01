@@ -74,27 +74,16 @@ def build_css() -> str:
     return f"""
 @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap');
 
+/* Zero page margin so the page box IS the full physical sheet — the only way
+   to get an edge-to-edge background in print (Chrome/Firefox never paint the
+   @page margin band). Text insets come from body padding below, which is part
+   of the body box and therefore painted near-black too. */
 @page {{
     size: A4;
-    margin: 18mm 16mm 18mm 16mm;
+    margin: 0;
 }}
 
 * {{ box-sizing: border-box; }}
-
-/* Full-bleed page background. Chrome's headless print only paints the area
-   INSIDE the @page margins, leaving a white margin band at the sheet edges.
-   A fixed-position layer repeats on every printed page; the negative offsets
-   (equal to the @page margins) push it out to the physical edges, so the whole
-   sheet — margins included — is near-black. */
-.page-bg {{
-    position: fixed;
-    top: -18mm;
-    bottom: -18mm;
-    left: -16mm;
-    right: -16mm;
-    background: {NEAR_BLACK};
-    z-index: -1;
-}}
 
 html {{
     background: {NEAR_BLACK};
@@ -102,7 +91,6 @@ html {{
 
 html, body {{
     margin: 0;
-    padding: 0;
     background: {NEAR_BLACK};
     color: {WHITE_SMOKE};
     font-family: {FONT_STACK};
@@ -111,6 +99,24 @@ html, body {{
     line-height: 1.6;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+}}
+
+/* Text inset from the sheet edge, applied as body padding so the padding area
+   stays near-black. Horizontal padding repeats on every page; the first page
+   gets the top inset and the last page the bottom inset. */
+body {{
+    padding: 17mm 16mm;
+}}
+
+/* Belt-and-suspenders full-bleed layer that repeats on every printed page. */
+.page-bg {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: {NEAR_BLACK};
+    z-index: -1;
 }}
 
 /* --- Call-to-action banner: the first thing on the document --- */
