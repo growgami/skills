@@ -81,8 +81,21 @@ def build_css() -> str:
 
 * {{ box-sizing: border-box; }}
 
-/* Near-black is set on the root so it propagates to the full page canvas
-   (every sheet, including the @page margins) in print. */
+/* Full-bleed page background. Chrome's headless print only paints the area
+   INSIDE the @page margins, leaving a white margin band at the sheet edges.
+   A fixed-position layer repeats on every printed page; the negative offsets
+   (equal to the @page margins) push it out to the physical edges, so the whole
+   sheet — margins included — is near-black. */
+.page-bg {{
+    position: fixed;
+    top: -18mm;
+    bottom: -18mm;
+    left: -16mm;
+    right: -16mm;
+    background: {NEAR_BLACK};
+    z-index: -1;
+}}
+
 html {{
     background: {NEAR_BLACK};
 }}
@@ -332,6 +345,7 @@ def build_document(md_text: str, title: str, client: str | None, report_date: st
 <style>{build_css()}</style>
 </head>
 <body>
+<div class="page-bg"></div>
 {cta_banner_html()}
 <div class="cover">
   <div class="eyebrow">Growgami · SEO Report</div>
