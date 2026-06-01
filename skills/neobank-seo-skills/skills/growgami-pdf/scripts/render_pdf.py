@@ -95,8 +95,8 @@ html, body {{
     color: {WHITE_SMOKE};
     font-family: {FONT_STACK};
     font-weight: 400;
-    font-size: 10.5pt;
-    line-height: 1.6;
+    font-size: 11pt;
+    line-height: 1.72;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }}
@@ -218,13 +218,14 @@ body {{
 }}
 .content blockquote p {{ margin: 0.3em 0; color: {LIGHT_SUBTLE}; }}
 
+/* Inline code kept deliberately subtle so technical tokens read as part of the
+   prose, not as commands or buttons. */
 .content code {{
     font-family: {FONT_STACK};
-    background: {ELEVATED};
-    border: 1px solid {DARK_BORDER};
+    background: {DARK_SURFACE};
     border-radius: 3px;
-    padding: 0.5px 5px;
-    font-size: 9.5pt;
+    padding: 0 3px;
+    font-size: 0.95em;
     color: {LIGHT_MUTED};
 }}
 .content pre {{
