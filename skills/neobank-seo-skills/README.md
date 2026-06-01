@@ -14,15 +14,16 @@ Works with Claude Code, Codex, Cursor, and any agent that supports the [Agent Sk
 | `competitor-pages` | Build "vs" and "alternatives" pages that capture high-intent comparison search |
 | `schema` | Add structured data (FinancialProduct, FAQ, Organization, Review) correctly, with values kept accurate |
 | `aso` | Audit and optimize App Store / Google Play listings — the parallel search engine for app installs |
+| `growgami-pdf` | Turn a finished report into a polished, Growgami-branded client PDF with a `growgami.com/contact` CTA at the top |
 
 ## Install
 
 ```bash
-# The whole pack (all 6 skills)
+# The whole pack (all 7 skills)
 npx growgami-skills neobank-seo-skills
 
-# Or list the 6 by name
-npx growgami-skills seo-audit ai-seo programmatic-seo competitor-pages schema aso
+# Or list them by name
+npx growgami-skills seo-audit ai-seo programmatic-seo competitor-pages schema aso growgami-pdf
 
 # Or just the ones you want
 npx growgami-skills seo-audit ai-seo

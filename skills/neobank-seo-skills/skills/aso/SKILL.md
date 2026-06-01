@@ -40,6 +40,14 @@ Fetch 2–3 category competitors, score them the same way, build a gap table, an
 ## Phase 4 — Report
 Score card → top 3 quick wins (<1hr, high impact) → per-dimension findings → keyword suggestions → visual recommendations → priority action plan. Every recommendation specific ("change subtitle from X to Y" + char counts), not vague. Note what needs paid tools (search volume, exact rank) and what needs Console access.
 
+Write the report to a dated Markdown file. When it's finished and proofread, render
+a client-ready, Growgami-branded PDF (with the `growgami.com/contact` CTA banner at
+the top) via the `growgami-pdf` skill:
+
+```bash
+uv run scripts/render_pdf.py aso-audit-YYYY-MM-DD.md --client "<Client>"
+```
+
 ---
 
 ## Neobank-specific layer
