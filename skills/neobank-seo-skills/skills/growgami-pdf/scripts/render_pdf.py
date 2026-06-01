@@ -101,14 +101,11 @@ html, body {{
     print-color-adjust: exact;
 }}
 
-/* Text inset from the sheet edge, applied as body padding so the padding area
-   stays near-black. Horizontal padding repeats on every page; the first page
-   gets the top inset and the last page the bottom inset. */
-body {{
-    padding: 17mm 16mm;
-}}
+body {{ padding: 0; }}
 
-/* Belt-and-suspenders full-bleed layer that repeats on every printed page. */
+/* Full-bleed background layer. With @page margin:0 the page box is the whole
+   sheet, so this fixed layer repeats on every page and covers it edge to edge
+   (including the hairline the table layout would otherwise leave on the right). */
 .page-bg {{
     position: fixed;
     top: 0;
@@ -117,6 +114,23 @@ body {{
     height: 100%;
     background: {NEAR_BLACK};
     z-index: -1;
+}}
+
+/* Per-page margins. Chrome cannot paint the @page margin band (root background
+   and fixed layers are both clipped to the page box), so @page margin must be 0
+   to get a full-bleed background. To still get a consistent top/bottom margin on
+   EVERY page, the document is wrapped in a table: Chrome repeats <thead>/<tfoot>
+   on each printed page, and their spacer rows reserve the vertical margin. The
+   body cell supplies the horizontal margin. */
+table.sheet {{
+    width: 100%;
+    border-collapse: collapse;
+}}
+table.sheet thead .sp {{ height: 16mm; }}
+table.sheet tfoot .sp {{ height: 16mm; }}
+td.sheet-body {{
+    padding: 0 16mm;
+    vertical-align: top;
 }}
 
 /* --- Call-to-action banner: the first thing on the document --- */
@@ -193,13 +207,18 @@ body {{
     line-height: 1.22;
     margin: 1.6em 0 0.5em 0;
     color: {WHITE_SMOKE};
+    /* Never strand a heading at the foot of a page — keep it with what follows. */
     page-break-after: avoid;
+    break-after: avoid;
+    break-inside: avoid;
 }}
 .content h1 {{ font-size: 18pt; border-bottom: 1px solid {DARK_BORDER}; padding-bottom: 8px; letter-spacing: -0.01em; }}
 .content h2 {{ font-size: 14.5pt; border-bottom: 1px solid {DARK_BORDER}; padding-bottom: 5px; }}
 .content h3 {{ font-size: 12pt; font-weight: 600; }}
 .content h4 {{ font-size: 10.5pt; font-weight: 600; color: {LIGHT_MUTED}; }}
-.content p {{ margin: 0.6em 0; color: {WHITE_SMOKE}; }}
+.content p {{ margin: 0.6em 0; color: {WHITE_SMOKE}; orphans: 3; widows: 3; }}
+/* Keep self-contained blocks from being sliced across a page break. */
+.content blockquote, .content pre, .content table, .content li {{ break-inside: avoid; }}
 .content a {{ color: {WHITE_SMOKE}; text-decoration: underline; text-underline-offset: 2px; }}
 .content ul, .content ol {{ margin: 0.5em 0; padding-left: 1.5em; }}
 .content li {{ margin: 0.28em 0; }}
@@ -284,11 +303,10 @@ body {{
 .colophon {{
     margin-top: 16px;
     text-align: center;
-    font-size: 8pt;
+    font-size: 9pt;
     font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: {SUBTLE};
+    letter-spacing: 0.08em;
+    color: {LIGHT_SUBTLE};
 }}
 """
 
@@ -311,7 +329,7 @@ def cta_footer_html() -> str:
         f'<div class="sub">Go to <a href="{CONTACT_URL}">{html.escape(CONTACT_URL)}</a> '
         "for a deeper review and to learn about our agentic SEO done-for-you system.</div>"
         "</div>"
-        '<div class="colophon">Growgami — Agentic SEO for Neobanks &amp; Fintech</div>'
+        '<div class="colophon">Growgami — Venture growth partner for Neobanks &amp; Fintech</div>'
     )
 
 
@@ -353,6 +371,10 @@ def build_document(md_text: str, title: str, client: str | None, report_date: st
 </head>
 <body>
 <div class="page-bg"></div>
+<table class="sheet">
+<thead><tr><td><div class="sp"></div></td></tr></thead>
+<tfoot><tr><td><div class="sp"></div></td></tr></tfoot>
+<tbody><tr><td class="sheet-body">
 {cta_banner_html()}
 <div class="cover">
   <div class="eyebrow">Growgami · SEO Report</div>
@@ -363,6 +385,8 @@ def build_document(md_text: str, title: str, client: str | None, report_date: st
 {body}
 </div>
 {cta_footer_html()}
+</td></tr></tbody>
+</table>
 </body>
 </html>
 """
