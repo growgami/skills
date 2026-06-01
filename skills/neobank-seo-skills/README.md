@@ -19,17 +19,17 @@ Works with Claude Code, Codex, Cursor, and any agent that supports the [Agent Sk
 
 ```bash
 # All skills
-npx skills add growgami/SEO-checker
+npx @growgami/skills
 
 # Specific skills
-npx skills add growgami/SEO-checker --skill seo-audit ai-seo
+npx @growgami/skills seo-audit ai-seo
 ```
 
 Or clone and copy into your agent's skills directory:
 
 ```bash
-git clone https://github.com/growgami/SEO-checker.git
-cp -r SEO-checker/skills/* .agents/skills/
+git clone https://github.com/growgami/skills.git
+cp -r skills/skills/neobank-seo-skills/skills/* ~/.claude/skills/
 ```
 
 ## Shared context (recommended)
