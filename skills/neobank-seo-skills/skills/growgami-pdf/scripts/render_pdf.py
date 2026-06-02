@@ -38,6 +38,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 
 import markdown  # provided by the uv inline-dependency block above
@@ -66,6 +67,169 @@ FONT_STACK = (
     "'Geist Mono', ui-monospace, 'Cascadia Code', 'SFMono-Regular', "
     "'Menlo', 'Consolas', 'Liberation Mono', monospace"
 )
+
+
+# --- HTML sanitizer ----------------------------------------------------------
+# The report Markdown can contain raw HTML (e.g. content pasted from an audited
+# or competitor site). markdown.markdown() passes that raw HTML through verbatim,
+# and the result is rendered by headless Chrome with JS enabled — so an embedded
+# <script>, an onerror= handler, or a javascript: URL would EXECUTE during PDF
+# generation. To stop that without adding a dependency, the markdown output is
+# run through this stdlib allowlist sanitizer: only the tags/attributes that
+# markdown legitimately produces survive; everything else (including the entire
+# contents of <script>/<style>) is dropped, and url-bearing attributes are
+# scheme-checked.
+
+# Tags markdown legitimately emits (extra + tables + code + toc + nl2br).
+_ALLOWED_TAGS = frozenset({
+    "p", "h1", "h2", "h3", "h4", "h5", "h6",
+    "ul", "ol", "li",
+    "table", "thead", "tbody", "tr", "th", "td",
+    "pre", "code", "blockquote",
+    "a", "strong", "em", "b", "i", "del", "span",
+    "hr", "br", "img", "sup", "sub",
+})
+
+# Per-tag attribute allowlist. "class" is allowed broadly (markdown's toc /
+# codehilite emit it); url attributes are scheme-checked separately.
+_ALLOWED_ATTRS = {
+    "a": {"href", "title", "class", "id"},
+    "img": {"src", "alt", "title", "class"},
+    "th": {"align", "class"},
+    "td": {"align", "class"},
+    "li": {"class", "id"},
+    "ol": {"class", "start"},
+    "ul": {"class"},
+    "code": {"class"},
+    "span": {"class"},
+    "h1": {"id", "class"},
+    "h2": {"id", "class"},
+    "h3": {"id", "class"},
+    "h4": {"id", "class"},
+    "h5": {"id", "class"},
+    "h6": {"id", "class"},
+}
+# Attributes allowed on any allowed tag.
+_GLOBAL_ATTRS = frozenset({"class"})
+
+# Tags whose entire text content must be discarded, not just the tag itself.
+_DROP_CONTENT_TAGS = frozenset({"script", "style"})
+
+# Void elements that never carry an end tag.
+_VOID_TAGS = frozenset({"br", "hr", "img"})
+
+# Attributes that carry a URL and must have their scheme validated.
+_URL_ATTRS = frozenset({"href", "src"})
+# Schemes considered safe for url-bearing attributes. Relative URLs and
+# in-page anchors (which have no scheme) are also allowed.
+_SAFE_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
+_SCHEME_RE = re.compile(r"^\s*([a-zA-Z][a-zA-Z0-9+.\-]*):")
+
+
+def _is_safe_url(value: str) -> bool:
+    """Allow relative URLs, anchors, and a small set of safe schemes; reject
+    javascript:/data:/vbscript: and anything else with an explicit scheme."""
+    if value is None:
+        return False
+    stripped = value.strip()
+    # Strip HTML entities so e.g. "java&#115;cript:" can't sneak a scheme past.
+    unescaped = html.unescape(stripped)
+    m = _SCHEME_RE.match(unescaped)
+    if not m:
+        # No scheme → relative path, anchor (#...), query, or bare text. Safe.
+        return True
+    return m.group(1).lower() in _SAFE_SCHEMES
+
+
+class _Sanitizer(HTMLParser):
+    """Allowlist HTML sanitizer built on the stdlib parser. Keeps only the tags
+    and attributes markdown produces; drops everything else; neutralizes unsafe
+    URL schemes and all event-handler (on*) attributes."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self._out: list[str] = []
+        # Depth counter for content we are actively discarding (inside script/style).
+        self._suppress_depth = 0
+
+    # -- helpers --
+    def _emit(self, text: str) -> None:
+        if self._suppress_depth == 0:
+            self._out.append(text)
+
+    def _render_attrs(self, tag: str, attrs: list[tuple[str, str | None]]) -> str:
+        allowed = _ALLOWED_ATTRS.get(tag, set()) | _GLOBAL_ATTRS
+        rendered: list[str] = []
+        for name, value in attrs:
+            lname = name.lower()
+            # Drop every event handler outright.
+            if lname.startswith("on"):
+                continue
+            if lname not in allowed:
+                continue
+            if lname in _URL_ATTRS and not _is_safe_url(value or ""):
+                continue
+            if value is None:
+                rendered.append(f" {lname}")
+            else:
+                rendered.append(f' {lname}="{html.escape(value, quote=True)}"')
+        return "".join(rendered)
+
+    # -- HTMLParser callbacks --
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in _DROP_CONTENT_TAGS:
+            self._suppress_depth += 1
+            return
+        if tag not in _ALLOWED_TAGS:
+            return  # drop the tag, keep its (already-parsed) children
+        attr_str = self._render_attrs(tag, attrs)
+        if tag in _VOID_TAGS:
+            self._emit(f"<{tag}{attr_str} />")
+        else:
+            self._emit(f"<{tag}{attr_str}>")
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in _DROP_CONTENT_TAGS or tag not in _ALLOWED_TAGS:
+            return
+        attr_str = self._render_attrs(tag, attrs)
+        self._emit(f"<{tag}{attr_str} />")
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in _DROP_CONTENT_TAGS:
+            if self._suppress_depth > 0:
+                self._suppress_depth -= 1
+            return
+        if tag not in _ALLOWED_TAGS or tag in _VOID_TAGS:
+            return
+        self._emit(f"</{tag}>")
+
+    def handle_data(self, data: str) -> None:
+        self._emit(html.escape(data, quote=False))
+
+    def handle_entityref(self, name: str) -> None:
+        self._emit(f"&{name};")
+
+    def handle_charref(self, name: str) -> None:
+        self._emit(f"&#{name};")
+
+    def handle_comment(self, data: str) -> None:
+        # Comments can hide conditional-comment markup; drop them entirely.
+        return
+
+    def result(self) -> str:
+        return "".join(self._out)
+
+
+def sanitize_html(raw_html: str) -> str:
+    """Run rendered-markdown HTML through the allowlist sanitizer so no
+    executable or otherwise dangerous markup can reach the headless browser."""
+    parser = _Sanitizer()
+    parser.feed(raw_html)
+    parser.close()
+    return parser.result()
 
 
 def build_css() -> str:
@@ -354,6 +518,10 @@ def build_document(md_text: str, title: str, client: str | None, report_date: st
         extensions=["extra", "sane_lists", "toc", "nl2br"],
         output_format="html5",
     )
+    # Strip any executable/dangerous HTML the source markdown may have carried
+    # through (raw <script>, on* handlers, javascript:/data: URLs) before it can
+    # reach the headless browser. Legitimate markdown output is untouched.
+    body = sanitize_html(body)
     body = strip_leading_h1(body)
 
     meta_parts = [f"<span>{html.escape(report_date)}</span>"]
