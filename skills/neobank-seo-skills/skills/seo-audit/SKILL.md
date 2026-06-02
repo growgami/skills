@@ -94,6 +94,19 @@ Write a dated report (e.g., `seo-audit-YYYY-MM-DD.md`). Structure:
 
 **Diff vs. last run** — if a prior report exists, list what regressed or resolved.
 
+### Branded PDF deliverable
+Once the Markdown report is finished and proofread, render it to a Growgami-branded
+PDF for the client — a polished deliverable that leads with a call-to-action banner
+to `growgami.com/contact`. Hand the report to the `growgami-pdf` skill:
+
+```bash
+uv run scripts/render_pdf.py seo-audit-YYYY-MM-DD.md --client "<Client>"
+```
+
+(If `growgami-pdf` was installed separately, point at its `scripts/render_pdf.py`.)
+The Markdown stays the source of truth and the re-runnable/diffable artifact; the
+PDF is the client-facing copy.
+
 ---
 
 ## Tool honesty
