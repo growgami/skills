@@ -7,3 +7,7 @@ docs/superpowers/
 
 # Local PDF/HTML render artifacts from skills
 *.tmp.pdf
+
+# Python bytecode
+__pycache__/
+*.pyc
