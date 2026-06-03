@@ -10,7 +10,7 @@ Claude Code skills built from real operational experience.
 npx growgami-skills --all                  # everything
 npx growgami-skills --list                 # list available skills (and bundles)
 npx growgami-skills org-map                # specific skill(s)
-npx growgami-skills neobank-seo-skills     # a whole bundle (all 7 SEO skills)
+npx growgami-skills neobank-seo-skills     # a whole bundle (all 8 SEO skills)
 ```
 
 Installing a bundle name (e.g. `neobank-seo-skills`) installs every skill inside
@@ -51,7 +51,7 @@ cp -r skills/skills/* ~/.claude/skills/         # all flat skills
 | [memory-management](skills/memory-management/) | Claude memory management |
 | [neobank-lifecycle-sequence-generator](skills/neobank-lifecycle-sequence-generator/) | Neobank lifecycle sequences |
 | [skill-creator](skills/skill-creator/) | Scaffold new Claude skills |
-| [neobank-seo-skills](skills/neobank-seo-skills/) | Bundle of 7 nested SEO skills for neobank/fintech: seo-audit, ai-seo, programmatic-seo, competitor-pages, schema, aso, growgami-pdf |
+| [neobank-seo-skills](skills/neobank-seo-skills/) | Bundle of 8 nested SEO skills for neobank/fintech: seo-audit, ai-seo, programmatic-seo, competitor-pages, schema, aso, growgami-pdf, growth-scorecard |
 
 ## Structure
 

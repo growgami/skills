@@ -63,7 +63,24 @@ Map target queries to the taxonomy and score winnability (rubric in reference fi
 Then audit the pages that target winnable intent for depth, intent match, internal links, and cannibalization. (For building these at scale, hand to `programmatic-seo`; for vs/alternatives pages, `competitor-pages`.)
 
 ### Stage 6 — Technical foundations
-Condensed from standard SEO; verify don't belabor:
+**First, get a reproducible technical baseline.** Run the `growth-scorecard`
+engine for the public, deterministic SEO signals, then read its JSON:
+
+```bash
+uv run scripts/scorecard.py <domain> --json-only -o web-health
+```
+
+Read `web-health.json` → `dimensions.seo` for a scored, re-runnable read on Core
+Web Vitals (CrUX-banded), title+meta, headings, schema, robots+sitemap, HTTPS,
+viewport, and `<html lang>`. Use it as the baseline, then verify the items below
+that the engine can't see. (If `growth-scorecard` was installed separately, point
+at its `scripts/scorecard.py`.)
+
+> **Raw-HTML caveat (same as Stage 2):** the engine reads **raw HTML only** — it
+> can't see JS-injected JSON-LD or client-rendered content. Confirm any schema /
+> content finding in a browser before reporting it.
+
+Then condensed from standard SEO; verify don't belabor:
 - Core Web Vitals: LCP < 2.5s, INP < 200ms, CLS < 0.1 (mobile first — most traffic and conversion is mobile).
 - HTTPS everywhere, valid cert, no mixed content, HTTP→HTTPS redirects (also a visible trust signal here).
 - Mobile parity on money pages; readable, consistent URLs.
