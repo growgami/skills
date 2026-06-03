@@ -1,0 +1,9 @@
+# Internal planning / strategy specs — keep OUT of the public repo
+docs/superpowers/
+
+# OS / editor cruft
+.DS_Store
+*.log
+
+# Local PDF/HTML render artifacts from skills
+*.tmp.pdf
