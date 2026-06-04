@@ -1,6 +1,6 @@
 {
   "name": "growgami-skills",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Claude Code skills built from real operational experience, installable via npx.",
   "license": "MIT",
   "repository": {
