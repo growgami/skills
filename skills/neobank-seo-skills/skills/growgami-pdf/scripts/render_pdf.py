@@ -489,7 +489,7 @@ def cta_banner_html() -> str:
 def cta_footer_html() -> str:
     return (
         '<div class="cta-footer">'
-        '<div class="headline">Want the deeper review?</div>'
+        '<div class="headline">Want a deeper review?</div>'
         f'<div class="sub">Go to <a href="{CONTACT_URL}">{html.escape(CONTACT_URL)}</a> '
         "for a deeper review and to learn about our agentic SEO done-for-you system.</div>"
         "</div>"
