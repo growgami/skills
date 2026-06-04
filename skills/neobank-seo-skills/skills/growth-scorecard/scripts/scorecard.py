@@ -58,6 +58,9 @@ SCORE_VERSION = "1"
 
 USER_AGENT = "GrowgamiGrowthScorecard/1.0 (+https://growgami.com)"
 DEFAULT_TIMEOUT = 12
+# PSI/Lighthouse responses routinely take 15-40s; give them a longer budget
+# than the general fetch timeout so Core Web Vitals are not always skipped.
+PSI_TIMEOUT = 60
 MAX_BYTES = 3_000_000
 MAX_REDIRECTS = 3
 
@@ -673,7 +676,7 @@ def score_cwv(domain: str, strategy: str, timeout: int,
     if key:
         psi += f"&key={key}"
 
-    res = safe_get(psi, timeout)
+    res = safe_get(psi, PSI_TIMEOUT)
     if not (res.ok and res.body):
         # One retry after a 2s backoff (deterministic-enough; bucket scoring
         # means a successful retry yields the same points).
@@ -683,7 +686,7 @@ def score_cwv(domain: str, strategy: str, timeout: int,
                 time.sleep(2)
             except Exception:
                 pass
-            res = safe_get(psi, timeout)
+            res = safe_get(psi, PSI_TIMEOUT)
         if not (res.ok and res.body):
             warnings.append(
                 "PageSpeed Insights unavailable (set GROWGAMI_PSI_KEY for higher "
