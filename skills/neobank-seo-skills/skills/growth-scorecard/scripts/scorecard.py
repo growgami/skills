@@ -672,7 +672,7 @@ def score_cwv(domain: str, strategy: str, timeout: int,
         "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
         f"?url={url}&strategy={strategy}"
     )
-    key = os.environ.get("GROWGAMI_PSI_KEY")
+    key = os.environ.get("PAGESPEED_API_KEY") or os.environ.get("GROWGAMI_PSI_KEY")
     if key:
         psi += f"&key={key}"
 
@@ -689,7 +689,7 @@ def score_cwv(domain: str, strategy: str, timeout: int,
             res = safe_get(psi, PSI_TIMEOUT)
         if not (res.ok and res.body):
             warnings.append(
-                "PageSpeed Insights unavailable (set GROWGAMI_PSI_KEY for higher "
+                "PageSpeed Insights unavailable (set PAGESPEED_API_KEY for higher "
                 "rate limits); Core Web Vitals were skipped."
             )
             return None
@@ -904,18 +904,34 @@ def score_aso(app_store_url: str, timeout: int, warnings: list,
     ))
 
     # --- Screenshots (15): >=5 full /3-4 9 /<3 0 ---
-    shots = app.get("screenshotUrls") or []
-    n_shots = len(shots) if isinstance(shots, list) else 0
-    if n_shots >= 5:
-        shot_pts = 15.0
-    elif n_shots >= 3:
-        shot_pts = 9.0
+    # A *published* app cannot truly have zero screenshots; when both the iPhone
+    # and iPad screenshot arrays come back empty/absent it means the Apple API
+    # could not expose them (confirmed live), not that the app has none. Scoring
+    # 0/15 in that case unfairly tanks the score, so we SKIP the check and
+    # renormalize ASO over the checks that actually ran. When screenshots ARE
+    # present, score exactly as before.
+    iphone_shots = app.get("screenshotUrls") or []
+    ipad_shots = app.get("ipadScreenshotUrls") or []
+    iphone_n = len(iphone_shots) if isinstance(iphone_shots, list) else 0
+    ipad_n = len(ipad_shots) if isinstance(ipad_shots, list) else 0
+    n_shots = iphone_n + ipad_n
+    if n_shots == 0:
+        skipped.append({
+            "check": "screenshots",
+            "dimension": "aso",
+            "reason": "screenshots not exposed by Apple API — not scored",
+        })
     else:
-        shot_pts = 0.0
-    dim.add("screenshots", Check(
-        value=n_shots, points=shot_pts, max=15,
-        note=">=5 full /3-4 9 /<3 0 (count only; quality craft deferred to aso skill)",
-    ))
+        if n_shots >= 5:
+            shot_pts = 15.0
+        elif n_shots >= 3:
+            shot_pts = 9.0
+        else:
+            shot_pts = 0.0
+        dim.add("screenshots", Check(
+            value=n_shots, points=shot_pts, max=15,
+            note=">=5 full /3-4 9 /<3 0 (count only; quality craft deferred to aso skill)",
+        ))
 
     # --- Description (10): >=500 full />=100 5 /else 0 ---
     desc = (app.get("description") or "").strip()

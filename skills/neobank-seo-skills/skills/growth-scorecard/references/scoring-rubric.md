@@ -68,7 +68,7 @@ jitter can never move the score.
 
 If PageSpeed Insights returns a non-200 or 429, the script retries once after a
 2-second backoff, then **skips CWV** (SEO renormalizes over the remaining 72
-points) and adds a warning suggesting the `GROWGAMI_PSI_KEY` environment
+points) and adds a warning suggesting the `PAGESPEED_API_KEY` environment
 variable for higher rate limits.
 
 ---
@@ -88,12 +88,13 @@ recorded as skipped with the reason "Play not supported in v1".
 | Rating | 25 | ≥4.5 → 25 · 4.0–4.49 → 18 · 3.5–3.99 → 10 · <3.5 → 0. (Rating rounded to 0.1 first.) |
 | Review-count tier | 20 | ≥100k → 20 · 10k–100k → 15 · 1k–10k → 10 · <1k → 4. |
 | Title + subtitle | 20 | 10 — title non-empty & ≤30 chars · 10 — subtitle present & ≤30 chars. |
-| Screenshots | 15 | ≥5 → 15 · 3–4 → 9 · <3 → 0. (Count only; quality craft is deferred to the `aso` skill.) |
+| Screenshots | 15 | ≥5 → 15 · 3–4 → 9 · <3 → 0. (iPhone + iPad counts combined; quality craft is deferred to the `aso` skill.) When **both** screenshot arrays come back empty/absent the Apple API simply isn't exposing them (a published app can't have zero), so the check is **skipped and ASO renormalizes** rather than scoring 0/15. |
 | Description | 10 | ≥500 chars → 10 · ≥100 → 5 · else 0. |
 | Update freshness | 10 | ≤30d → 10 · ≤90d → 7 · ≤180d → 3 · older → 0. |
 
 **ASO total max:** 100. (The iTunes Lookup API may not expose a subtitle; when
-absent, the subtitle half scores 0.)
+absent, the subtitle half scores 0. When the API exposes no screenshots, the
+screenshots check drops out and ASO renormalizes over the remaining checks.)
 
 ---
 

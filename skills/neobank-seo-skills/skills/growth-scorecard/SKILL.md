@@ -74,7 +74,7 @@ uv run scripts/scorecard.py monzo.com --timeout 20
 | `--no-cwv` | Skip Core Web Vitals. |
 | `--timeout` | Per-request timeout in seconds (default 12). |
 
-Set `GROWGAMI_PSI_KEY` for higher PageSpeed Insights rate limits; without it,
+Set `PAGESPEED_API_KEY` for higher PageSpeed Insights rate limits; without it,
 keyless PSI is rate-limited and CWV may be gracefully skipped.
 
 ## Outputs
