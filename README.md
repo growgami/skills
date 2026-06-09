@@ -52,6 +52,7 @@ cp -r skills/skills/* ~/.claude/skills/         # all flat skills
 | [neobank-lifecycle-sequence-generator](skills/neobank-lifecycle-sequence-generator/) | Neobank lifecycle sequences |
 | [skill-creator](skills/skill-creator/) | Scaffold new Claude skills |
 | [neobank-seo-skills](skills/neobank-seo-skills/) | Bundle of 8 nested SEO skills for neobank/fintech: seo-audit, ai-seo, programmatic-seo, competitor-pages, schema, aso, growgami-pdf, growth-scorecard |
+| [neobank-competitor-reviews](skills/neobank-competitor-reviews/) | Web-tools-only agent that discovers a neobank/fintech's competitors, aggregates review sentiment, scores them 0–100 with a confidence flag, and writes a ranked top-5 report |
 
 ## Structure
 
