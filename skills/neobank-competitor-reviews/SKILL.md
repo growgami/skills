@@ -135,11 +135,20 @@ confidence flag, and a one-line "why" you can show in the report.
    competitors are the most useful finding — call them out.
 2. **Rank the top 5** by composite score, but **never let a Low-confidence score
    outrank a High-confidence one without saying so** — note the caveat in the row.
-3. **Write the report** from `references/report-template.md`: single `# H1`
-   title, executive summary, the ranked top-5 table (rank · competitor · score ·
-   confidence), then a per-competitor section (score breakdown + clustered pain
-   points + representative quotes/links), then methodology, confidence, and
-   sources. Save to a dated file, e.g. `competitor-reviews-YYYY-MM-DD.md`.
+3. **Write the report** from `references/report-template.md`, **tight and
+   scannable — target 4–6 pages, not 13.** Structure: single `# H1` title; a
+   3–4-sentence exec summary (lead with the ranking + the one cross-competitor
+   insight); the ranked top-5 table (the centerpiece); a compact bulleted
+   pain-point themes list (one line per theme); then **compact per-competitor
+   cards** — a one-line header (`### N. Name — score/100 · confidence`), a short
+   score parenthetical (e.g. "(App Store 4.9/41k, sentiment −5)"), a one-line
+   "Liked:", 3 short "Top pain points" bullets, **at most ONE** attributed quote,
+   and a tiny "Coverage:" half-line; then a single condensed methodology +
+   confidence block; then compact sources grouped by competitor (links only).
+   **Verbosity caps:** favor tables/bullets over paragraphs; no paragraph longer
+   than ~3 lines; one quote per competitor max; cut score-math paragraphs and
+   long data-gaps prose. Save to a dated file, e.g.
+   `competitor-reviews-YYYY-MM-DD.md`.
 
 ---
 

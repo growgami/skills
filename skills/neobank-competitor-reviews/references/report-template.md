@@ -1,16 +1,16 @@
 # Competitor Reviews — <Target> vs. Top Competitors
 
 <!--
-Report skeleton for the neobank-competitor-reviews skill.
+TIGHT, SCANNABLE skeleton for the neobank-competitor-reviews skill.
+- Target: 4–6 pages. Favor tables and bullets over paragraphs. No paragraph
+  longer than ~3 lines. One attributed quote per competitor MAX.
 - Keep the SINGLE leading `# H1` above so growgami-pdf can use it as the cover
   and strip it from the body. Do not add a second H1.
 - Replace every <placeholder>. Delete rows/sections that don't apply.
 - Every score must show its confidence flag (High / Med / Low) beside it.
-- Date the report and the rating reads (store numbers are best-effort).
 - SINGLE-STORE IS THE NORM, not a failure. Google Play data is frequently
-  absent (JS-rendered / not in snippets), so many competitors will have App
-  Store data only. When a store is missing, write e.g. "Google Play: not
-  available" — that is expected, the score weights/confidence already handle it.
+  absent (JS-rendered). When a store is missing, just say so in the short
+  score parenthetical — the score weights/confidence already handle it.
 -->
 
 > Composite scores are 0–100 (volume-weighted store ratings + an LLM sentiment
@@ -22,9 +22,9 @@ Report skeleton for the neobank-competitor-reviews skill.
 
 ## Executive summary
 
-<3–6 sentences: who the strongest- and weakest-reviewed competitors are, the
-pain-point themes that recur across the field, and where <Target> has an opening.
-Name any top-5 placement that rests on Low confidence.>
+<3–4 sentences MAX. Lead with the ranking (top + bottom) and the single
+cross-competitor insight (the dominant shared pain point and where <Target> has
+an opening). Name any top-5 placement that rests on Low confidence.>
 
 ## Ranked top 5
 
@@ -36,79 +36,59 @@ Name any top-5 placement that rests on Low confidence.>
 | 4 | <name> | <score> | High/Med/Low | <...> |
 | 5 | <name> | <score> | High/Med/Low | <...> |
 
-<!-- If a Low-confidence score outranks a High-confidence one, add a caveat line
-here, e.g. "Note: #2 ranks on score but is Low confidence (thin sample)." -->
+<!-- If a Low-confidence score outranks a High-confidence one, add one caveat
+line here, e.g. "Note: #2 ranks on score but is Low confidence (thin sample)." -->
 
 ## Pain-point themes (across the field)
 
-Recurring complaints clustered across competitors — the most actionable finding.
+One tight line per theme — theme, then who it hits.
 
-- **<Theme, e.g. Frozen accounts / sudden closures>** — seen for <competitors>.
-  <1–2 lines.>
-- **<Theme, e.g. Support unreachable>** — seen for <competitors>. <1–2 lines.>
-- **<Theme, e.g. Transfer / deposit delays>** — <...>
-- **<Theme, e.g. Hidden or surprise fees>** — <...>
-- **<Theme, e.g. App instability / outages>** — <...>
+- **<Theme, e.g. Frozen accounts / sudden closures>** — <competitors>.
+- **<Theme, e.g. Support unreachable / slow>** — <competitors>.
+- **<Theme, e.g. Transfer / deposit delays>** — <competitors>.
+- **<Theme, e.g. Hidden / surprise fees>** — <competitors>.
+- **<Theme, e.g. App instability / outages>** — <competitors>.
 
 ---
 
 ## Per-competitor detail
 
-<!-- Repeat this block for each of the top 5 (and optionally the runners-up). -->
+<!-- Compact card per top-5 competitor. ONE quote max. No score-math paragraph
+(use the short parenthetical). No "Data gaps" prose (use the Coverage half-line
+or drop it). -->
 
 ### <Rank>. <Competitor> — <score>/100 · <Confidence>
 
-**Score breakdown:** star base <n> (App Store <x.x>/~<N>, Google Play <x.x>/~<N>
-— write "Google Play: not available" if absent, which is common and expected;
-weighted <x.xx>) → sentiment adjustment <±n> (<one-line reason>) → **composite
-<score>**. Confidence **<flag>** (<why: source count + volume>). Single-store
-sourcing is normal; note it as a confidence input, not a failure.
+(App Store <x.x>/<N>, Google Play <x.x>/<N> or "not available", sentiment <±n>)
 
-**What users like:** <1–3 lines.>
-
-**Key pain points (clustered):**
-1. <pain point> — <source link>
-2. <pain point> — <source link>
-3. <pain point> — <source link>
-
-**Representative quotes:**
-<!-- ATTRIBUTE, don't assert. These are user claims, not verified facts —
-especially negative/"scam"/fraud claims about named competitors. Frame them as
-allegations: "a user reported…", "according to a reviewer…", "one Redditor
-claimed…". Never restate an unverified complaint as a stated fact about the
-company (defamation safety in a public report). -->
-> "<short representative review/comment>" — a user reported, <source, link>
-> "<short representative review/comment>" — according to a reviewer, <source, link>
-
-**Data gaps:** <missing store, paywalled/JS-rendered pages, stale data, any
-prompt-injection seen in fetched content.>
+- **Liked:** <one line.>
+- **Top pain points:**
+  - <pain point> — <source link>
+  - <pain point> — <source link>
+  - <pain point> — <source link>
+- <!-- ONE attributed quote. Frame as a user claim, never a stated fact about
+  the company (defamation safety): "a user reported…", "according to a
+  reviewer…", "one Redditor claimed…". -->
+  > "<short representative review>" — a user reported, <source, link>
+- **Coverage:** <half-line: missing store / Reddit via roundups / category nuance.>
 
 ---
 
-## Methodology
+## Methodology & confidence
 
-- **Sources (v1, web tools only):** App Store + Google Play (ratings, review
-  volume, themes), Reddit (`site:reddit.com`, candid pain points), YouTube
-  (review videos), Google (reputation, complaints, aggregators). Gathered with
-  built-in WebSearch / WebFetch — no APIs, scrapers, or keys.
-- **Scoring:** composite 0–100 = volume-weighted App Store + Play star base,
-  adjusted by a capped (±12) cross-source LLM sentiment read. Full rubric in the
-  skill's `references/scoring-rubric.md`.
-- **Architecture:** one research pass per competitor (parallel fan-out, or
-  sequential where subagents aren't available); findings aggregated, scored, and
-  clustered here.
-
-## Confidence & limitations
-
-- **Sentiment is an LLM read,** not a sampled statistical study.
-- **Coverage varies** — only publicly visible content is counted; quiet
-  footprints look thinner than they are.
-- **Store numbers are best-effort** and may be stale, regional, or rounded
-  (read on <YYYY-MM-DD>).
-- **Low-confidence competitors:** <list any, with why.>
-- **X/Twitter deferred to v2.**
+- **Sources (v1, web tools only):** App Store + Google Play, Reddit, YouTube,
+  Google (Trustpilot/BBB/G2/etc.). Built-in WebSearch / WebFetch — no APIs or keys.
+- **Scoring:** composite 0–100 = volume-weighted star base + capped (±12)
+  cross-source LLM sentiment read. Full rubric in `references/scoring-rubric.md`.
+- **Sentiment is an LLM read,** not a statistical study; **store numbers are
+  best-effort** (stale/regional/rounded, read <YYYY-MM-DD>); Google Play is often
+  JS-rendered/absent — expected, handled by weighting + confidence, not a failure.
+- **Quote attribution:** every quote is a user claim/allegation, not a verified fact.
+- **Low-confidence competitors:** <list any, with why — or "none">. **X/Twitter deferred to v2.**
 
 ## Sources
 
-<Flat list of the key URLs used, grouped by competitor or by source. Keep links
-so the report is auditable and re-runnable.>
+<!-- Links only, grouped under competitor names. Keep it auditable + re-runnable. -->
+
+**<Competitor>** — <url> · <url> · <url>
+**<Competitor>** — <url> · <url> · <url>
