@@ -25,8 +25,11 @@ weighted_stars = (apple_stars × apple_volume + play_stars × play_volume)
 
 - Use whatever volume figures you have (ratings count preferred; if only a
   downloads tier is visible, use the listed count as a rough weight and note it).
-- If only **one** store has data, use that store's rating (and the single-source
-  fact lowers confidence in Step 3).
+- If only **one** store has data, use that store's rating. **This is the norm,
+  not the exception** — Google Play is frequently JS-rendered and absent from
+  snippets, so App-Store-only sourcing is common and expected. A single store
+  with solid volume can still earn High/Med confidence in Step 3; record the
+  missing store as "not available" rather than treating it as a gap or failure.
 - If **neither** store has a usable rating, there is no star base — score from
   sentiment alone and flag **Low** confidence.
 
@@ -35,6 +38,11 @@ weighted_stars = (apple_stars × apple_volume + play_stars × play_volume)
 ```
 star_base = round((weighted_stars - 1) / 4 × 100)
 ```
+
+> **The formula is authoritative; the table is illustrative.** Always compute
+> `star_base` from the formula for the actual weighted-star value — do **not**
+> snap to the nearest table row. The table below is just a few reference points;
+> e.g. 4.9 stars computes to `round((4.9 − 1) / 4 × 100) = 98`, not 100.
 
 | Weighted stars | Star base |
 | --- | --- |

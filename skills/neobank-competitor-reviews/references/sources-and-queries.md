@@ -58,13 +58,31 @@ you found. Some apps are geo-restricted and won't appear in every region.
 
 ## 3. Reddit — candid sentiment & pain points
 
-**WebSearch (use the `site:` operator):**
+**WebSearch (try the `site:` operator first):**
 - `site:reddit.com <brand> review`
 - `site:reddit.com <brand> complaints`
 - `site:reddit.com <brand> problems` / `site:reddit.com <brand> scam`
 - `site:reddit.com <brand> vs <competitor>`
 
-**Then WebFetch** the most relevant 2–3 threads.
+**Fallback — the `site:` operator often returns nothing.** The built-in
+WebSearch tool **frequently silently fails on `site:reddit.com`** (zero links
+even when relevant threads exist). Reddit is a primary candid-sentiment source,
+so **do not stop at an empty `site:` result.** If `site:reddit.com <brand>`
+returns nothing, **retry without the operator:**
+- `reddit <brand> complaints`
+- `<brand> review reddit`
+- `<brand> reddit`
+
+If those still surface no direct `reddit.com` threads but you find **indirect /
+general-web results that quote or summarize Reddit** (roundups, "what Redditors
+say about <brand>" articles), use them as the Reddit signal **with a coverage
+downgrade noted** (e.g. `coverage: Low — Reddit reached only via secondary
+roundups, no direct threads`). **Only record Reddit as empty (`coverage: Low`,
+no signal) after both the `site:` queries and the plain-keyword retries come back
+dry** — never let a silent `site:` failure throw away retrievable sentiment.
+
+**Then WebFetch** the most relevant 2–3 threads (or the roundups, if that's all
+that's available).
 
 **Extract:** the dominant sentiment, recurring concrete pain points (account
 freezes, support, transfers, fees), and 2–3 representative comment links.
@@ -81,7 +99,8 @@ fixed. Beware brigading / promo threads. Old.reddit.com URLs fetch more cleanly.
 **WebSearch:**
 - `<brand> review youtube`
 - `<brand> honest review`
-- `<brand> app review <year>`
+- `<brand> app review <year>` (substitute the **current year** for `<year>`, e.g.
+  `<brand> app review 2026`; or drop the year token to widen the search)
 - `is <brand> worth it`
 
 **Then WebFetch** the video page(s) for title, description, and visible context.
