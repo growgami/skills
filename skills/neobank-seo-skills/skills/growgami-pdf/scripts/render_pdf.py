@@ -259,8 +259,8 @@ html, body {{
     color: {WHITE_SMOKE};
     font-family: {FONT_STACK};
     font-weight: 400;
-    font-size: 11pt;
-    line-height: 1.72;
+    font-size: 10.5pt;
+    line-height: 1.7;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }}
@@ -365,12 +365,25 @@ td.sheet-body {{
 }}
 
 /* --- Body typography --- */
-.content {{ color: {WHITE_SMOKE}; }}
+/* Geist Mono is wider than a proportional face, so prose is capped to a
+   comfortable measure (~70 mono characters) instead of running the full
+   text column edge-to-edge. Hyphenation + pretty wrapping keep long mono
+   words and short trailing words from leaving a ragged edge or orphans.
+   Tables and code keep the full width (set back to none below). */
+.content {{
+    color: {WHITE_SMOKE};
+    max-width: 38em;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}}
 .content h1, .content h2, .content h3, .content h4 {{
     font-weight: 700;
     line-height: 1.22;
-    margin: 1.6em 0 0.5em 0;
+    margin: 1.7em 0 0.55em 0;
     color: {WHITE_SMOKE};
+    /* Headings read tightest unhyphenated; keep them on one ragged line. */
+    hyphens: manual;
+    -webkit-hyphens: manual;
     /* Never strand a heading at the foot of a page — keep it with what follows. */
     page-break-after: avoid;
     break-after: avoid;
@@ -380,18 +393,33 @@ td.sheet-body {{
 .content h2 {{ font-size: 14.5pt; border-bottom: 1px solid {DARK_BORDER}; padding-bottom: 5px; }}
 .content h3 {{ font-size: 12pt; font-weight: 600; }}
 .content h4 {{ font-size: 10.5pt; font-weight: 600; color: {LIGHT_MUTED}; }}
-.content p {{ margin: 0.6em 0; color: {WHITE_SMOKE}; orphans: 3; widows: 3; }}
+.content p {{
+    margin: 0.75em 0;
+    line-height: 1.78;
+    color: {WHITE_SMOKE};
+    orphans: 2;
+    widows: 2;
+    text-wrap: pretty;
+}}
 /* Keep self-contained blocks from being sliced across a page break. */
 .content blockquote, .content pre, .content table, .content li {{ break-inside: avoid; }}
 .content a {{ color: {WHITE_SMOKE}; text-decoration: underline; text-underline-offset: 2px; }}
-.content ul, .content ol {{ margin: 0.5em 0; padding-left: 1.5em; }}
-.content li {{ margin: 0.28em 0; }}
+.content ul, .content ol {{ margin: 0.7em 0; padding-left: 1.5em; }}
+.content li {{
+    margin: 0.4em 0;
+    line-height: 1.7;
+    orphans: 2;
+    widows: 2;
+    text-wrap: pretty;
+}}
+.content li > ul, .content li > ol {{ margin: 0.4em 0; }}
 .content strong {{ font-weight: 700; color: {WHITE_SMOKE}; }}
 .content em {{ color: {LIGHT_MUTED}; }}
 .content hr {{ border: none; border-top: 1px solid {DARK_BORDER}; margin: 1.8em 0; }}
 
 .content blockquote {{
-    margin: 1em 0;
+    max-width: none;
+    margin: 1.1em 0;
     padding: 12px 18px;
     background: {DARK_SURFACE};
     border: 1px solid {DARK_BORDER};
@@ -402,7 +430,7 @@ td.sheet-body {{
 .content blockquote p {{ margin: 0.3em 0; color: {LIGHT_SUBTLE}; }}
 
 /* Inline code kept deliberately subtle so technical tokens read as part of the
-   prose, not as commands or buttons. */
+   prose, not as commands or buttons. Never hyphenate a code token. */
 .content code {{
     font-family: {FONT_STACK};
     background: {DARK_SURFACE};
@@ -410,8 +438,11 @@ td.sheet-body {{
     padding: 0 3px;
     font-size: 0.95em;
     color: {LIGHT_MUTED};
+    hyphens: none;
+    -webkit-hyphens: none;
 }}
 .content pre {{
+    max-width: none;
     background: {DARK_SURFACE};
     color: {WHITE_SMOKE};
     border: 1px solid {DARK_BORDER};
@@ -420,6 +451,8 @@ td.sheet-body {{
     overflow-x: auto;
     font-size: 9pt;
     line-height: 1.5;
+    hyphens: none;
+    -webkit-hyphens: none;
     page-break-inside: avoid;
 }}
 .content pre code {{ background: none; border: none; color: {WHITE_SMOKE}; padding: 0; }}
@@ -428,9 +461,11 @@ td.sheet-body {{
 .content table {{
     border-collapse: collapse;
     width: 100%;
-    margin: 1em 0;
+    max-width: none;
+    margin: 1.1em 0;
     font-size: 9.5pt;
     border: 1px solid {DARK_BORDER};
+    hyphens: none;
     page-break-inside: avoid;
 }}
 .content th {{
