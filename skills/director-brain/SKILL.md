@@ -46,7 +46,7 @@ updated: 2026-07-02
 
 When a reference is shared (a tweet/video/prompt/screenshot, or a link):
 
-1. **Extract.** Pull the raw facts: model + version + provider, params (resolution, duration, aspect, seed, steps, speed tier), the prompt (verbatim if given), and the directing content — cinematography, camera/motion, lighting, composition, subject/identity handling, audio, pacing/beats, plus quality notes and limitations. Note the source (URL, author, date, engagement if notable) and whether we reproduced it.
+1. **Watch the video with Gemini.** This is the primary extraction step. When the reference includes a clip, have Gemini *watch the actual footage* and read the directing content straight from the frames and audio — camera work, motion, lighting, composition, and pacing — instead of inferring it secondhand from the shared text/prompt. Prompt Gemini to return the breakdown as the structured fields this skill already uses (**camera / motion / lighting / composition / pacing**) so it drops straight into the next step. See *Watching the video with Gemini* below for the copy-pasteable call. Then capture the surrounding raw facts from the shared post: model + version + provider, params (resolution, duration, aspect, seed, steps, speed tier), the prompt (verbatim if given), plus quality notes and limitations. Note the source (URL, author, date, engagement if notable) and whether we reproduced it. (If no video is attached — only a prompt/screenshot — skip the watch and extract the directing content from the text as before.)
 2. **Classify.** Decide which technique(s) it demonstrates, which model(s), which use-case(s). Prefer reusing existing slugs — grep `knowledge/` and read `INDEX.md` first.
 3. **Merge, don't duplicate.** For each technique/model/use-case:
    - **Match found** -> open that file, fold in the new data point (add the per-model recipe, refine the description, add the prompt fragment as a variant), append the source, bump `observations` and `confidence`, update `updated`. If the new data *conflicts* with existing, keep both and annotate the condition ("at 720p SD2 Fast, X; at 1080p, Y").
@@ -54,6 +54,68 @@ When a reference is shared (a tweet/video/prompt/screenshot, or a link):
 4. **Log the reference.** Always write `references/<date>-<slug>.md`: source, one-paragraph what-it-demonstrated, a bullet list of which knowledge entries it created/enriched (with links), and the raw prompt (provenance only). This is the dedup trail — a similar prior reference here means merge instead of create.
 5. **Update INDEX.md** with any new slugs/keywords.
 6. Keep prompt fragments **copy-paste ready** and generic (placeholders for subject/setting), so they compose.
+
+### Watching the video with Gemini
+
+Gemini watches the real clip and returns the directing breakdown. In the Claude Tag environment the agent proxy transparently injects the `x-goog-api-key` header, so **no API key goes in the request** — plain `curl` works.
+
+- **Host:** `generativelanguage.googleapis.com` (credential is proxy-injected; do not add a key).
+- **Model:** `gemini-2.5-flash` (default). Use `gemini-2.5-pro` for harder analyses.
+- **Gotcha:** `gemini-2.0-flash` and the entire `gemini-1.5` family are **retired** and return `404` — do not use them.
+- **Endpoint:** `POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+- Ask Gemini to return the breakdown as the fields the knowledge base uses (**camera / motion / lighting / composition / pacing**) so it feeds straight into Classify → Merge.
+
+**Path A — public YouTube URL (validated).** Simplest; no upload. Pass the URL as a `fileData.fileUri` part alongside the extraction prompt:
+
+```bash
+curl -sS \
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
+  -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[
+    {"text":"Watch this video. Extract the directing as structured fields — camera (lens, framing, angles, cuts), motion (subject + camera movement), lighting (sources, quality, color), composition, pacing (beats, cut rhythm). Be concrete and reusable."},
+    {"fileData":{"fileUri":"https://www.youtube.com/watch?v=VIDEO_ID"}}
+  ]}]}'
+```
+
+Validated end-to-end on 2026-07-08 (HTTP 200; ~167K video + ~20K audio prompt tokens billed, confirming real frame + audio ingestion).
+
+**Path B — non-YouTube clip / upload / S3 / local file (documented, untested in this env).** Use the resumable File API, then reference the uploaded file in `generateContent`:
+
+1. **Start** the upload (capture the upload URL from the `x-goog-upload-url` response header):
+
+   ```bash
+   curl -sS -D - -o /dev/null \
+     "https://generativelanguage.googleapis.com/upload/v1beta/files" \
+     -H "X-Goog-Upload-Protocol: resumable" \
+     -H "X-Goog-Upload-Command: start" \
+     -H "X-Goog-Upload-Header-Content-Length: $(stat -c%s clip.mp4)" \
+     -H "X-Goog-Upload-Header-Content-Type: video/mp4" \
+     -H "Content-Type: application/json" \
+     -d '{"file":{"display_name":"clip"}}'
+   ```
+
+2. **Upload + finalize** the bytes to that URL:
+
+   ```bash
+   curl -sS "$UPLOAD_URL" \
+     -H "Content-Length: $(stat -c%s clip.mp4)" \
+     -H "X-Goog-Upload-Offset: 0" \
+     -H "X-Goog-Upload-Command: upload, finalize" \
+     --data-binary @clip.mp4
+   ```
+
+   The response returns the file resource (`file.name`, `file.uri`, `file.mimeType`).
+
+3. **Poll** `GET https://generativelanguage.googleapis.com/v1beta/{file.name}` until `state == ACTIVE`.
+
+4. **Reference** it in `generateContent` with a `fileData` part carrying `mimeType` + `fileUri`:
+
+   ```json
+   {"contents":[{"parts":[
+     {"text":"<same extraction prompt as Path A>"},
+     {"fileData":{"mimeType":"video/mp4","fileUri":"<file.uri>"}}
+   ]}]}
+   ```
 
 ## QUERY workflow
 
